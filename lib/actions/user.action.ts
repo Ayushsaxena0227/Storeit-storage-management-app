@@ -2,10 +2,10 @@
 
 import { createAdminClient, createSessionClient } from "@/lib/appwrite";
 import { appwriteConfig } from "@/lib/appwrite/config";
-import { Query, ID } from "appwrite";
+import { Query, ID } from "node-appwrite";
 import { parseStringify } from "@/lib/utils";
 import { cookies } from "next/headers";
-// import { avatarPlaceholderUrl } from "@/constants";
+import { avatarPlaceholderUrl } from "@/constants";
 import { redirect } from "next/navigation";
 
 const getUserByEmail = async (email: string) => {
@@ -59,8 +59,7 @@ export const createAccount = async ({
       {
         fullname: fullName,
         email,
-        avatar:
-          "https://imgs.search.brave.com/_igTjJJKHHe9TFDQCANTc_ZTsj-OGhUdAVEAi3rmaXc/rs:fit:500:0:0:0/g:ce/aHR0cHM6Ly9jZG4u/dmVjdG9yc3RvY2su/Y29tL2kvcHJldmll/dy0xeC82Ny85NS9m/bGF0LXVzZXItYXZh/dGFyLWljb24tbWVt/YmVyLXNpZ24taXNv/bGF0ZWQtaHVtYW4t/dmVjdG9yLTQ3MTU2/Nzk1LmpwZw",
+        avatar: avatarPlaceholderUrl,
         accountId,
       }
     );
