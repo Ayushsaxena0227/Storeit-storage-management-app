@@ -84,3 +84,71 @@ export const getFiles = async () => {
     handleError(error, "Failed to get the files");
   }
 };
+
+export const renameFile = async ({
+  fileId,
+  name,
+  extension,
+  path,
+}: RenameFileProps) => {
+  const { databases } = await createAdminClient();
+  try {
+    const newname = `${name}.${extension}`;
+    const updatedFile = await databases.updateDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.filesCollectionId,
+      fileId,
+      {
+        name: newname,
+      }
+    );
+    revalidatePath(path);
+    parseStringify(updatedFile);
+  } catch (error) {
+    handleError(error, "Failed to Rename the File");
+  }
+};
+
+export const updatedFileUsers = async ({
+  fileId,
+  emails,
+  path,
+}: UpdateFileUsersProps) => {
+  const { databases } = await createAdminClient();
+  try {
+    const updatedFile = await databases.updateDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.filesCollectionId,
+      fileId,
+      {
+        users: emails,
+      }
+    );
+    revalidatePath(path);
+    parseStringify(updatedFile);
+  } catch (error) {
+    handleError(error, "Failed to Rename the File");
+  }
+};
+
+export const deleteFileUsers = async ({
+  fileId,
+  bucketFileId,
+  path,
+}: DeleteFileProps) => {
+  const { databases, storage } = await createAdminClient();
+  try {
+    const deletedFile = await databases.deleteDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.filesCollectionId,
+      fileId
+    );
+    if (deletedFile) {
+      await storage.deleteFile(appwriteConfig.bucketId, bucketFileId);
+    }
+    revalidatePath(path);
+    parseStringify({ status: "success" });
+  } catch (error) {
+    handleError(error, "Failed to Rename the File");
+  }
+};

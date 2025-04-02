@@ -27,6 +27,14 @@ import Link from "next/link";
 import { constructDownloadUrl } from "@/lib/utils";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
+import {
+  deleteFileUsers,
+  renameFile,
+  updatedFileUsers,
+} from "@/lib/actions/file.actions";
+import { usePathname } from "next/navigation";
+import { FileDetails } from "./ActionModalContent";
+import { ShareInput } from "./ActionModalContent";
 
 const ActionDropdown = ({ file }: { file: Models.Document }) => {
   //   console.log(file);
@@ -35,6 +43,8 @@ const ActionDropdown = ({ file }: { file: Models.Document }) => {
   const [action, setAction] = useState<ActionType | null>(null);
   const [name, setName] = useState(file.name);
   const [isLoading, setIsloading] = useState(false);
+  const [emails, setEmails] = useState<string[]>([]);
+  const path = usePathname();
 
   // this is for when u just simply press cancel
   const closeAllModels = () => {
@@ -45,9 +55,60 @@ const ActionDropdown = ({ file }: { file: Models.Document }) => {
     // setemails([]);
   };
 
-  const handleAction = async () => {};
+  const handleAction = async () => {
+    if (!action) return;
 
+    setIsloading(true);
+    let success: boolean = false; // Ensure success is always boolean
+
+    const actions: Record<string, () => Promise<boolean>> = {
+      rename: async () => {
+        const result = await renameFile({
+          fileId: file.$id,
+          name,
+          extension: file.extension,
+          path,
+        });
+
+        return result ?? false; // Ensure it always returns a boolean
+      },
+      share: async () => {
+        await updatedFileUsers({ fileId: file.$id, emails, path });
+        return true;
+      },
+      delete: async () => {
+        await deleteFileUsers({
+          fileId: file.$id,
+          path,
+          bucketFileId: file.bucketFileId,
+        });
+        return true;
+      },
+    };
+
+    if (action.value in actions) {
+      success = await actions[action.value]();
+    }
+
+    if (success) closeAllModels();
+
+    setIsloading(false);
+  };
+
+  //   FUNCTION FOR SHARING MODAL
+  const handleRemoveUser = async (email: string) => {
+    const updatedEmails = emails.filter((e) => e !== email);
+    await updatedFileUsers({
+      fileId: file.$id,
+      emails: updatedEmails,
+      path,
+    });
+
+    setEmails(updatedEmails);
+    closeAllModels();
+  };
   // COMMON MODAL FOR RENAME, SHARE, DELETE
+
   const renderDialogContent = () => {
     if (!action) return null;
     const { value, label } = action;
@@ -63,6 +124,20 @@ const ActionDropdown = ({ file }: { file: Models.Document }) => {
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
+          )}
+          {value === "details" && <FileDetails file={file} />}
+          {value === "share" && (
+            <ShareInput
+              file={file}
+              onInputChange={setEmails}
+              onRemove={handleRemoveUser}
+            />
+          )}
+          {value === "delete" && (
+            <p className="delete-confirmation">
+              Are you sure you want to delete{" "}
+              <span className="delete-file-name">{file.name}</span>?
+            </p>
           )}
         </DialogHeader>
         {["rename", "share", "delete"].includes(value) && (
