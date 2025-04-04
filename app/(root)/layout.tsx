@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { Toaster } from "@/components/ui/toaster";
 import React from "react";
 
+export const dynamic = "force-dynamic"; // Force revalidation on every request
 const layout = async ({ children }: { children: React.ReactNode }) => {
   const currentUser = await getCurrentUser();
   // console.log(currentUser);
